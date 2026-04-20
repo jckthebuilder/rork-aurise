@@ -15,7 +15,11 @@ class AlarmStore {
         loadAlarms()
         isPremium = UserDefaults.standard.bool(forKey: premiumKey)
         if #available(iOS 26.0, *) {
-            Task { await AlarmKitScheduler.shared.rescheduleAll(alarms) }
+            Task {
+                if AlarmKitScheduler.shared.isAuthorized() {
+                    await AlarmKitScheduler.shared.rescheduleAll(alarms)
+                }
+            }
         } else {
             scheduler.rescheduleAllAlarms(alarms)
         }
