@@ -1,11 +1,14 @@
 import SwiftUI
 import UserNotifications
+#if canImport(AlarmKit)
+import AlarmKit
+#endif
 
 @Observable
 @MainActor
 class OnboardingViewModel {
     var currentStep: Int = 0
-    let totalSteps: Int = 22
+    let totalSteps: Int = 23
 
     var morningEase: MorningEase?
     var bedReason: BedReason?
@@ -47,7 +50,7 @@ class OnboardingViewModel {
         case 13: return true
         case 14: return alarmIntensity != nil
         case 15: return !activeDays.isEmpty
-        case 16, 17, 18, 19, 20, 21: return true
+        case 16, 17, 18, 19, 20, 21, 22: return true
         default: return true
         }
     }
@@ -96,6 +99,15 @@ class OnboardingViewModel {
             playingSoundId = nil
         } else {
             playingSoundId = id
+        }
+    }
+
+    func requestAlarmKitAuthorization() async {
+        if #available(iOS 26.0, *) {
+            let manager = AlarmManager.shared
+            if manager.authorizationState == .notDetermined {
+                try? await manager.requestAuthorization()
+            }
         }
     }
 

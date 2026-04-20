@@ -1,11 +1,14 @@
-# Fix Alarms toggle appearing in iOS Settings
+# Add AlarmKit Permission Step to Onboarding
 
+## What's Being Fixed
+
+The onboarding only ever asks for **notifications** permission. There's no step that asks for **AlarmKit** (the deeper alarm access needed to ring through Silent Mode and Focus). The permission was being requested too early (before any screen appeared), so iOS silently dropped it.
 
 ## Changes
 
-**Fix 1 — Wrong app name in permission text**
-- [x] In `project.pbxproj` (both Debug & Release), change `NSAlarmKitUsageDescription` from `"Wayv uses AlarmKit..."` → `"Aurise uses AlarmKit to reliably ring your wake-up alarm even in Silent or Focus mode."`
+- **New onboarding step** — after the notifications step, a new "Alarm Access" screen appears with an alarm bell icon, explaining that Aurise needs AlarmKit access to reliably wake you up through Silent Mode, Focus, and Do Not Disturb. Has an "Allow Access" button that triggers the real iOS AlarmKit permission dialog
+- **Correct timing** — the AlarmKit dialog now fires at exactly the right moment during onboarding, ensuring iOS shows it properly
+- **Removed premature request** — the early call in app startup (which was silently failing) is removed
+- **Graceful handling** — on older devices that don't support AlarmKit, the step auto-advances without error
+- **Onboarding step count updated** — progress bar reflects the new step correctly
 
-**Fix 2 — Request AlarmKit permission at app launch**
-- [x] In `AuriseApp.swift`, add a Task in the app init that calls `AlarmManager.shared.requestAuthorization()` immediately on iOS 26+
-- [x] This ensures iOS registers Aurise as an alarm app the very first time it opens, making the "Alarms" toggle appear in iOS Settings → Aurise (just like Wayk)

@@ -97,6 +97,12 @@ struct OnboardingContainerView: View {
                     )
                     .tag(20)
 
+                    AlarmKitPermissionView(
+                        onEnable: { await vm.requestAlarmKitAuthorization() },
+                        onContinue: { vm.advance() }
+                    )
+                    .tag(21)
+
                     CompletionView(vm: vm) {
                         vm.completeOnboarding()
                         alarmStore.createAlarmFromOnboarding(vm: vm)
@@ -104,7 +110,7 @@ struct OnboardingContainerView: View {
                             hasCompletedOnboarding = true
                         }
                     }
-                    .tag(21)
+                    .tag(22)
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .animation(.smooth(duration: 0.45), value: vm.currentStep)

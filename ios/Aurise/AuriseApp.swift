@@ -16,18 +16,6 @@ struct AuriseApp: App {
         _notificationDelegate = State(initialValue: delegate)
         self.notificationHandler = handler
         UNUserNotificationCenter.current().delegate = handler
-        requestAlarmKitAuthorization()
-    }
-
-    private func requestAlarmKitAuthorization() {
-        if #available(iOS 26.0, *) {
-            Task { @MainActor in
-                let manager = AlarmManager.shared
-                if manager.authorizationState == .notDetermined {
-                    try? await manager.requestAuthorization()
-                }
-            }
-        }
     }
 
     var body: some Scene {
