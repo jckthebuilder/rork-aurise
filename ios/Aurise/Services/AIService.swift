@@ -70,6 +70,7 @@ class AIService {
             throw AIServiceError.requestFailed
         }
         let base64 = jpegData.base64EncodedString()
+        let dataURL = "data:image/jpeg;base64,\(base64)"
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -80,7 +81,7 @@ class AIService {
 
         let messageContent: [[String: Any]] = [
             ["type": "text", "text": prompt],
-            ["type": "image", "image": base64]
+            ["type": "image", "image": dataURL]
         ]
 
         let body: [String: Any] = [
