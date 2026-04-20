@@ -8,6 +8,9 @@ struct SettingsView: View {
     @State private var showResetConfirm: Bool = false
     @State private var showPaywall: Bool = false
     @State private var notificationsEnabled: Bool = false
+    @State private var alarmKitAuthorized: Bool = false
+    @State private var testAlarmMessage: String? = nil
+    @State private var showTestAlarmAlert: Bool = false
     @State private var appeared: Bool = false
 
     var body: some View {
@@ -19,6 +22,7 @@ struct SettingsView: View {
                     VStack(spacing: 24) {
                         premiumSection
                         alarmReadinessSection
+                        testAlarmSection
                         appearanceSection
                         aboutSection
                         dangerZone
@@ -31,7 +35,13 @@ struct SettingsView: View {
             .navigationTitle("Settings")
             .onAppear {
                 checkNotifications()
+                checkAlarmKitAuthorization()
                 withAnimation(.spring(response: 0.5)) { appeared = true }
+            }
+            .alert("Test Alarm", isPresented: $showTestAlarmAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(testAlarmMessage ?? "")
             }
             .alert("Reset Onboarding?", isPresented: $showResetConfirm) {
                 Button("Cancel", role: .cancel) { }
@@ -132,6 +142,22 @@ struct SettingsView: View {
                 }
 
                 SettingsReadinessRow(
+                    icon: "bell.and.waves.left.and.right.fill",
+                    title: "AlarmKit Permission",
+                    subtitle: alarmKitAuthorized ? "Granted — alarms ring through Silent & Focus" : "Not granted — tap to enable in Settings",
+                    isPassed: alarmKitAuthorized,
+                    showDivider: true
+                ) {
+                    Task {
+                        let granted = await alarmStore.requestAlarmAuthorization()
+                        alarmKitAuthorized = granted
+                        if !granted, let url = URL(string: UIApplication.openSettingsURLString) {
+                            await UIApplication.shared.open(url)
+                        }
+                    }
+                }
+
+                SettingsReadinessRow(
                     icon: "alarm.fill",
                     title: "Active Alarms",
                     subtitle: alarmStore.activeAlarmCount > 0 ? "\(alarmStore.activeAlarmCount) alarm\(alarmStore.activeAlarmCount == 1 ? "" : "s") active" : "No active alarms",
@@ -158,6 +184,71 @@ struct SettingsView: View {
         }
         .opacity(appeared ? 1 : 0)
         .offset(y: appeared ? 0 : 12)
+    }
+
+    private var testAlarmSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("TEST")
+                .font(.caption.weight(.bold))
+                .foregroundStyle(AuriseTheme.tertiaryText)
+                .tracking(1.2)
+
+            Button {
+                Task { await fireTestAlarm() }
+            } label: {
+                HStack(spacing: 12) {
+                    Image(systemName: "bell.badge.waveform.fill")
+                        .font(.body)
+                        .foregroundStyle(AuriseTheme.accent)
+                        .frame(width: 24)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Fire Test Alarm")
+                            .font(.body.weight(.medium))
+                            .foregroundStyle(AuriseTheme.primaryText)
+                        Text("Rings in 10 seconds — lock your phone to verify")
+                            .font(.caption)
+                            .foregroundStyle(AuriseTheme.secondaryText)
+                    }
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(AuriseTheme.tertiaryText)
+                }
+                .padding(14)
+                .background(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(AuriseTheme.cardFill)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .strokeBorder(AuriseTheme.subtleBorder, lineWidth: 0.5)
+                )
+            }
+            .buttonStyle(.plain)
+        }
+        .opacity(appeared ? 1 : 0)
+        .offset(y: appeared ? 0 : 12)
+    }
+
+    private func fireTestAlarm() async {
+        if #available(iOS 26.0, *) {
+            let ok = await AlarmKitScheduler.shared.scheduleTestAlarm(in: 10)
+            testAlarmMessage = ok
+                ? "Test alarm scheduled. Lock your phone now — it will ring in 10 seconds."
+                : "Could not schedule. Enable AlarmKit permission in Settings and try again."
+            checkAlarmKitAuthorization()
+        } else {
+            testAlarmMessage = "Test alarm requires iOS 26 or later."
+        }
+        showTestAlarmAlert = true
+    }
+
+    private func checkAlarmKitAuthorization() {
+        if #available(iOS 26.0, *) {
+            alarmKitAuthorized = AlarmKitScheduler.shared.isAuthorized()
+        } else {
+            alarmKitAuthorized = false
+        }
     }
 
     private var appearanceSection: some View {

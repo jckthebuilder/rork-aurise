@@ -117,6 +117,52 @@ final class AlarmKitScheduler {
         }
     }
 
+    func scheduleTestAlarm(in seconds: TimeInterval = 10) async -> Bool {
+        guard await requestAuthorization() else { return false }
+
+        let fireDate = Date().addingTimeInterval(seconds)
+
+        let stopButton = AlarmButton(
+            text: "Stop",
+            textColor: .white,
+            systemImageName: "stop.fill"
+        )
+
+        let alertContent = AlarmPresentation.Alert(
+            title: LocalizedStringResource(stringLiteral: "Test Alarm"),
+            stopButton: stopButton
+        )
+
+        let presentation = AlarmPresentation(alert: alertContent)
+
+        let metadata = WayvAlarmMetadata(
+            alarmId: "test",
+            missionType: "none",
+            soundId: "clear_bell",
+            intensity: "standard",
+            title: "Test Alarm"
+        )
+
+        let attributes = AlarmAttributes<WayvAlarmMetadata>(
+            presentation: presentation,
+            metadata: metadata,
+            tintColor: Color(red: 1.0, green: 0.58, blue: 0.30)
+        )
+
+        let config = AlarmManager.AlarmConfiguration.alarm(
+            schedule: .fixed(fireDate),
+            attributes: attributes
+        )
+
+        do {
+            _ = try await AlarmManager.shared.schedule(id: UUID(), configuration: config)
+            return true
+        } catch {
+            print("AlarmKit test schedule failed: \(error)")
+            return false
+        }
+    }
+
     func cancel(_ alarm: Alarm) async {
         do {
             try AlarmManager.shared.cancel(id: alarm.id)
