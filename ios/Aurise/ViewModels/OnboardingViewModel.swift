@@ -102,13 +102,26 @@ class OnboardingViewModel {
         }
     }
 
-    func requestAlarmKitAuthorization() async {
+    func requestAlarmKitAuthorization() async -> Bool {
         if #available(iOS 26.0, *) {
             let manager = AlarmManager.shared
-            if manager.authorizationState == .notDetermined {
-                try? await manager.requestAuthorization()
+            switch manager.authorizationState {
+            case .authorized:
+                return true
+            case .denied:
+                return false
+            case .notDetermined:
+                do {
+                    let state = try await manager.requestAuthorization()
+                    return state == .authorized
+                } catch {
+                    return false
+                }
+            @unknown default:
+                return false
             }
         }
+        return false
     }
 
     func requestNotifications() async {

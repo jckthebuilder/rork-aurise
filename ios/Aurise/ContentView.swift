@@ -18,9 +18,6 @@ struct ContentView: View {
                 MainTabView(alarmStore: alarmStore, progressStore: progressStore)
                     .transition(.opacity)
                     .onAppear {
-                        Task {
-                            _ = await alarmStore.requestAlarmAuthorization()
-                        }
                         observeAlarmKitUpdates()
                     }
             } else {
