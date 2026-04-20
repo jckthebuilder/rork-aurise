@@ -14,7 +14,11 @@ class AlarmStore {
     init() {
         loadAlarms()
         isPremium = UserDefaults.standard.bool(forKey: premiumKey)
-        scheduler.rescheduleAllAlarms(alarms)
+        if #available(iOS 26.0, *) {
+            Task { await AlarmKitScheduler.shared.rescheduleAll(alarms) }
+        } else {
+            scheduler.rescheduleAllAlarms(alarms)
+        }
     }
 
     var nextAlarm: Alarm? {
@@ -51,19 +55,19 @@ class AlarmStore {
     func addAlarm(_ alarm: Alarm) {
         alarms.append(alarm)
         saveAlarms()
-        scheduler.scheduleAlarm(alarm)
+        scheduleBackend(alarm)
     }
 
     func updateAlarm(_ alarm: Alarm) {
         if let index = alarms.firstIndex(where: { $0.id == alarm.id }) {
             alarms[index] = alarm
             saveAlarms()
-            scheduler.scheduleAlarm(alarm)
+            scheduleBackend(alarm)
         }
     }
 
     func deleteAlarm(_ alarm: Alarm) {
-        scheduler.cancelAlarm(alarm)
+        cancelBackend(alarm)
         alarms.removeAll { $0.id == alarm.id }
         saveAlarms()
     }
@@ -72,7 +76,31 @@ class AlarmStore {
         if let index = alarms.firstIndex(where: { $0.id == alarm.id }) {
             alarms[index].isEnabled.toggle()
             saveAlarms()
-            scheduler.scheduleAlarm(alarms[index])
+            scheduleBackend(alarms[index])
+        }
+    }
+
+    private func scheduleBackend(_ alarm: Alarm) {
+        if #available(iOS 26.0, *) {
+            Task { await AlarmKitScheduler.shared.schedule(alarm) }
+        } else {
+            scheduler.scheduleAlarm(alarm)
+        }
+    }
+
+    private func cancelBackend(_ alarm: Alarm) {
+        if #available(iOS 26.0, *) {
+            Task { await AlarmKitScheduler.shared.cancel(alarm) }
+        } else {
+            scheduler.cancelAlarm(alarm)
+        }
+    }
+
+    func requestAlarmAuthorization() async -> Bool {
+        if #available(iOS 26.0, *) {
+            return await AlarmKitScheduler.shared.requestAuthorization()
+        } else {
+            return await scheduler.requestPermission()
         }
     }
 
@@ -81,7 +109,10 @@ class AlarmStore {
     }
 
     func snoozeAlarm(_ alarm: Alarm) {
-        scheduler.scheduleSnooze(for: alarm)
+        if #available(iOS 26.0, *) {
+        } else {
+            scheduler.scheduleSnooze(for: alarm)
+        }
     }
 
     func dismissAlarm(_ alarm: Alarm) {

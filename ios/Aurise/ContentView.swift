@@ -6,6 +6,12 @@ struct ContentView: View {
     @State private var progressStore = ProgressStore()
     @Environment(AppNotificationDelegate.self) private var notificationDelegate
 
+    private func observeAlarmKitUpdates() {
+        if #available(iOS 26.0, *) {
+            AlarmKitBridge.shared.start(alarmStore: alarmStore, notificationDelegate: notificationDelegate)
+        }
+    }
+
     var body: some View {
         ZStack {
             if hasCompletedOnboarding {
@@ -13,8 +19,9 @@ struct ContentView: View {
                     .transition(.opacity)
                     .onAppear {
                         Task {
-                            await AlarmScheduler.shared.requestPermission()
+                            _ = await alarmStore.requestAlarmAuthorization()
                         }
+                        observeAlarmKitUpdates()
                     }
             } else {
                 OnboardingContainerView(hasCompletedOnboarding: $hasCompletedOnboarding, alarmStore: alarmStore)
