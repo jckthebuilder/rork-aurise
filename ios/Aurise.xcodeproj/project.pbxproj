@@ -403,7 +403,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
-				INFOPLIST_KEY_NSAlarmKitUsageDescription = "Wayv uses AlarmKit to reliably ring your wake-up alarm even in Silent or Focus mode.";
+				INFOPLIST_KEY_NSAlarmKitUsageDescription = "Aurise uses AlarmKit to reliably ring your wake-up alarm even in Silent or Focus mode.";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Aurise needs camera access to complete photo-based wake-up missions.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -440,7 +440,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
-				INFOPLIST_KEY_NSAlarmKitUsageDescription = "Wayv uses AlarmKit to reliably ring your wake-up alarm even in Silent or Focus mode.";
+				INFOPLIST_KEY_NSAlarmKitUsageDescription = "Aurise uses AlarmKit to reliably ring your wake-up alarm even in Silent or Focus mode.";
 				INFOPLIST_KEY_NSCameraUsageDescription = "Aurise needs camera access to complete photo-based wake-up missions.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
